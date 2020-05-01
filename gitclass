@@ -1,0 +1,148 @@
+#!/bin/bash
+url=46.101.37.227
+ellapsed=5
+action='pull'
+
+if [ "$1" == "--help" ]; then
+	echo "Usage: $0 [-t10] [--help|-pull|-clone] [students names]"
+	echo "  $0 --help                 This message"
+	echo "  $0                        Pull all students"
+	echo "  $0 -t10                   Wait 10 seconds between pulls"
+	echo "  $0 -pull                  Pull all students"
+	echo "  $0 -clone                 Clone all students"
+	echo "  $0 -clone moshe michal    Clone students moshe and michal"
+	echo "  $0 moshe michal           Pull students moshe michal"
+	exit 0
+fi
+
+isArg=1
+while [ $isArg -eq 1 ]; do
+	isArg=0
+	if [ "$1" == "-pull" ] || [ "$1" == "-clone" ]; then
+		action=`echo $1| sed -e 's/\-//g'`
+		shift
+		isArg=1
+	fi
+	if [ "$1" == "-t10" ]; then
+		ellapsed=10
+		shift
+		isArg=1
+	fi
+done
+
+students=""
+while [ "$1" != "" ]; do
+	std=`echo $1 | sed 's#/##'`
+	students="$students $std"
+	shift
+done
+
+if [ "$students" == "" ]; then
+	students=`cat students.lst`
+fi
+
+function mkAllDirs() {
+	students="$*"
+	OK=1
+	for d in $students; do
+		d="$(echo -e "${d}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		if [ "$d" == "" ];then
+			continue
+		fi
+		if [ ! -d $d ]; then
+			mkdir $d
+			if [ ! -d $d ]; then
+				echo "Cannot mkdir $d"
+				OK=0
+				break
+			fi
+		fi
+	done
+
+	if [ $OK == 0 ]; then
+		exit 1
+	fi
+}
+
+function wipeLine()
+{
+	if [ "$1" == "" ]; then
+		wipe=80
+	else
+		wipe=$1
+	fi
+	echo -en "\r"
+	while [  $wipe -gt 0 ]; do
+		echo -en " "
+		let wipe=wipe-1
+	done
+	echo -en "\r"
+}
+
+function timeout()
+{
+	if [ "$1" == "" ]; then
+		ellapsed=3
+	else
+		ellapsed=$1
+	fi
+	secs=1
+	echo -n "Wait: "
+	while [ $secs -le $ellapsed ] ; do
+		echo -n $secs
+		sleep 1
+		digits=$secs
+		while [ $digits -gt 0 ]; do
+			echo -en "\b"
+			digits=`expr $digits / 10`
+		done
+		secs=`expr $secs + 1`
+	done
+	wipeLine 9
+}
+
+function remove_local_changes()
+{
+	# Revert changes to modified files (modified, added, removed).
+	git reset --hard
+
+	# Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
+	git clean -fd
+}
+
+mkAllDirs $students
+
+count=$(echo $students | wc -w)
+curr=0
+
+curdir=$PWD
+part1=`dirname "$PWD"`
+class=`basename "$PWD"`
+proj=`basename "$part1"`
+if [ $proj != 'web' ] && [ $proj != 'core' ]; then
+	proj='work'
+fi
+
+for d in $students; do
+	d="$(echo -e "${d}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+	if [ "$d" == "" ];then
+		continue
+	fi
+	((curr++))
+	if [ $curr -gt 1 ]; then
+		timeout $ellapsed
+	fi
+	echo "------------------------------------- getting $d ($curr/$count)"
+	cd $d
+	if [ $action == 'clone' ] || [ ! -e $proj ]; then
+		rm -rf $proj
+		echo "git clone --depth=1 git@$url:$class.$d/$proj.git"
+		git clone --depth=1 git@$url:$class.$d/$proj.git
+	else
+		cd $proj
+		remove_local_changes
+		echo git $action
+		git $action
+	fi
+	cd $curdir
+done
