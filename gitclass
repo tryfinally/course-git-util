@@ -1,45 +1,58 @@
 #!/bin/bash
+bold=$(tput bold)
+normal=$(tput sgr0)
 url=46.101.37.227
-ellapsed=5
+
 action='pull'
+depth=100000
+ellapsed=5
 
-if [ "$1" == "--help" ]; then
-	echo "Usage: $0 [-t10] [--help|-pull|-clone] [students names]"
-	echo "  $0 --help                 This message"
-	echo "  $0                        Pull all students"
-	echo "  $0 -t10                   Wait 10 seconds between pulls"
-	echo "  $0 -pull                  Pull all students"
-	echo "  $0 -clone                 Clone all students"
-	echo "  $0 -clone moshe michal    Clone students moshe and michal"
-	echo "  $0 moshe michal           Pull students moshe michal"
-	exit 0
-fi
-
-isArg=1
-while [ $isArg -eq 1 ]; do
-	isArg=0
-	if [ "$1" == "-pull" ] || [ "$1" == "-clone" ]; then
-		action=`echo $1| sed -e 's/\-//g'`
-		shift
-		isArg=1
-	fi
-	if [ "$1" == "-t10" ]; then
-		ellapsed=10
-		shift
-		isArg=1
-	fi
+while getopts ":hpc:it:" opt; do
+  case ${opt} in
+  	h ) echo "Usage: $0 [-h] [-c depth] [-t time] [user1] [user2] ..."
+		echo "	$0						Pull all repos"
+		echo "  $0 user1 user2 ...		Pull repos for user1 user2"		
+		echo "	Options"		
+		echo "  	-c [depth]         	Clone instead of pull with depth {default:all}"
+		echo "  	-t n 				Wait n seconds between repos pull"
+		echo "  	-h                 	This message"
+		exit 0
+		;;
+    p ) action="pull"
+    	;;
+    c ) action="clone"
+		if [ $OPTARG != "" ]; then
+			depth=$OPTARG
+		fi
+		;;
+	t ) if [ $OPTARG != "" ]; then
+			ellapsed=$OPTARG		
+		fi		
+		;; 
+	i) ellapsed=0
+		;;
+    \? ) echo "Invalid Option: -$OPTARG" 1>&2
+      	exit 1
+		;;
+  esac
 done
-
+shift $((OPTIND -1))
 students=""
 while [ "$1" != "" ]; do
 	std=`echo $1 | sed 's#/##'`
 	students="$students $std"
 	shift
 done
-
 if [ "$students" == "" ]; then
 	students=`cat students.lst`
 fi
+
+# echo $students
+# echo "depth $depth"
+# echo "timeout $ellapsed"
+# echo "git clone --depth=$depth git@$url:$class.$d/$proj.git"
+
+#exit 0
 
 function mkAllDirs() {
 	students="$*"
@@ -64,42 +77,17 @@ function mkAllDirs() {
 	fi
 }
 
-function wipeLine()
-{
-	if [ "$1" == "" ]; then
-		wipe=80
-	else
-		wipe=$1
+function delay(){
+	if [[ $1 = 0 ]]; then
+		return
 	fi
-	echo -en "\r"
-	while [  $wipe -gt 0 ]; do
-		echo -en " "
-		let wipe=wipe-1
-	done
-	echo -en "\r"
+	echo -n "Thinking"
+	for x in `seq 1 $1` ; do
+		echo -n "."	    
+	    sleep 1   
+	done ; echo
 }
 
-function timeout()
-{
-	if [ "$1" == "" ]; then
-		ellapsed=3
-	else
-		ellapsed=$1
-	fi
-	secs=1
-	echo -n "Wait: "
-	while [ $secs -le $ellapsed ] ; do
-		echo -n $secs
-		sleep 1
-		digits=$secs
-		while [ $digits -gt 0 ]; do
-			echo -en "\b"
-			digits=`expr $digits / 10`
-		done
-		secs=`expr $secs + 1`
-	done
-	wipeLine 9
-}
 
 function remove_local_changes()
 {
@@ -130,19 +118,19 @@ for d in $students; do
 	fi
 	((curr++))
 	if [ $curr -gt 1 ]; then
-		timeout $ellapsed
-	fi
-	echo "------------------------------------- getting $d ($curr/$count)"
+		delay $ellapsed
+	fi	
+	echo "${bold}------------------------------------- $d ($curr/$count)${normal}"
 	cd $d
 	if [ $action == 'clone' ] || [ ! -e $proj ]; then
 		rm -rf $proj
-		echo "git clone --depth=1 git@$url:$class.$d/$proj.git"
-		git clone --depth=1 git@$url:$class.$d/$proj.git
+		# echo "git clone --depth=$depth git@$url:$class.$d/$proj.git"
+		git clone --depth=$depth git@$url:$class.$d/$proj.git
 	else
 		cd $proj
 		remove_local_changes
-		echo git $action
+		# echo git $action
 		git $action
+		cd $curdir
 	fi
-	cd $curdir
 done
