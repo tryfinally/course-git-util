@@ -2,6 +2,7 @@
 bold=$(tput bold)
 normal=$(tput sgr0)
 url=$COURSE_GIT_URL
+
 action='pull'
 depth=100000
 ellapsed=5
@@ -9,12 +10,12 @@ ellapsed=5
 while getopts ":hpc:it:" opt; do
   case ${opt} in
   	h ) echo "Usage: $0 [-h] [-c depth] [-t time] [user1] [user2] ..."
-		echo "	$0                      Pull all repos"
-		echo "  $0 user1 user2 ...      Pull repos for user1 user2"		
-		echo "	Options"
-		echo "      -c [depth]          Clone instead of pull with depth {default:all}"
-		echo "      -t n                Wait n seconds between repos pull"
-		echo "      -h                  This message"
+		echo "	$0						Pull all repos"
+		echo "  $0 user1 user2 ...		Pull repos for user1 user2"		
+		echo "	Options"		
+		echo "  	-c [depth]         	Clone instead of pull with depth {default:all}"
+		echo "  	-t n 				Wait n seconds between repos pull"
+		echo "  	-h                 	This message"
 		exit 0
 		;;
     p ) action="pull"
@@ -45,12 +46,6 @@ done
 if [ "$students" == "" ]; then
 	students=`cat students.lst`
 fi
-
-# echo $students
-# echo "depth $depth"
-# echo "timeout $ellapsed"
-
-#exit 0
 
 function mkAllDirs() {
 	students="$*"
@@ -89,10 +84,7 @@ function delay(){
 
 function remove_local_changes()
 {
-	# Revert changes to modified files (modified, added, removed).
 	git reset --hard
-
-	# Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
 	git clean -fd
 }
 
@@ -121,16 +113,12 @@ for d in $students; do
 	echo "${bold}------------------------------------- $d ($curr/$count)${normal}"
 	cd $d
 	if [ $action == 'clone' ] || [ ! -e $proj ]; then
-		# pwd
 		rm -rf $proj		
-		#echo "git clone --depth=$depth git@$url:$class.$d/$proj.git"
 		git clone --depth=$depth git@$url:$class.$d/$proj.git
 	else
 		cd $proj
-		# pwd
-		remove_local_changes
-		# echo git $action
-		git $action		
+		remove_local_changes		
+		git $action
+		cd $curdir
 	fi
-	cd $curdir
 done
