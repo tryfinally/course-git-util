@@ -58,6 +58,9 @@ function mkAllDirs() {
 	OK=1
 	for d in $students; do
 		d="$(echo -e "${d}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+		if [ ${d:0:1} == "#" ] ; then 
+			continue;
+		fi
 		if [ "$d" == "" ];then
 			continue
 		fi
@@ -87,6 +90,14 @@ function delay(){
 	done ; echo
 }
 
+function trim() {
+    local var="$*"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   
+    printf '%s' "$var"
+}
 
 function remove_local_changes()
 {
@@ -99,7 +110,11 @@ function remove_local_changes()
 
 mkAllDirs $students
 
-count=$(echo $students | wc -w)
+#count=$(echo $students | wc -w | sed -e 's/^[[:space:]]*//')
+count=$(echo $students | wc -w) 
+#trim spaces
+count="${count#"${count%%[![:space:]]*}"}"
+
 curr=0
 
 curdir=$PWD
@@ -115,11 +130,15 @@ for d in $students; do
 	if [ "$d" == "" ];then
 		continue
 	fi
+	if [ ${d:0:1} == "#" ] ; then 
+		echo "${bold}--------skip------------------------- ($curr/$count)${normal} $d"
+		continue;
+	fi
 	((curr++))
 	if [ $curr -gt 1 ]; then
 		delay $ellapsed
 	fi	
-	echo "${bold}------------------------------------- $d ($curr/$count)${normal}"
+	echo "${bold}------------------------------------- ($curr/$count)${normal} $d"
 	cd $d
 	if [ $action == 'clone' ] || [ ! -e $proj ]; then
 		# pwd
