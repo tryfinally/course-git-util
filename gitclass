@@ -1,16 +1,99 @@
-#!/bin/bash
-bold=$(tput bold)
-normal=$(tput sgr0)
-url=$COURSE_GIT_URL
+#!/usr/bin/env bash
 
+delay(){
+	if [[ $1 = 0 ]]; then
+		return
+	fi
+	# echo -n "Thinking ⌛"
+	echo -ne $2
+	delay_clocks=("\U1F550" "\U1F551" "\U1F552" "\U1F553" "\U1F554" "\U1F555" "\U1F556" "\U1F557" "\U1F558" "\U1F559" "\U1F55A")
+	i=0
+	for x in `seq 1 $1` ; do
+		# echo -n "."	    
+		# echo -n $3
+		# SaveCursor
+		echo -en "${delay_clocks[$i]}"
+		# RestoreCursor
+		((i++))
+	    sleep 1
+		echo -en "\033[2D"
+		
+	done ;
+}
+
+trim() {
+    local var="$*"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"   
+	echo "${var}"    
+}
+
+function remove_local_changes()
+{
+	# Revert changes to modified files (modified, added, removed).
+	git reset --hard
+	# Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
+	git clean -fd
+}
+
+
+# bold=$(tput bold)
+# normal=$(tput sgr0)
+
+Bold="\e[1m"
+Normal="\e[0m"
+Black="\e[30m"
+Red="\e[31m"
+Green="\e[32m"
+Yellow="\e[33m"
+Blue="\e[34m"
+Magenta="\e[35m"
+Cyan="\e[36m"
+White="\e[37m"
+
+DarkGray="\e[90m"
+LightRed="\e[91m"
+LightGreen="\e[92m"
+LightYellow="\e[93m"
+LightBlue="\e[94m"
+LightMagenta="\e[95m"
+LightCyan="\e[96m"
+LightWhite="\e[97m"
+
+
+display(){
+	echo -en $*
+	echo -en ${Normal}
+}
+
+SaveCursor(){
+	echo -en "\e7"
+}
+
+RestoreCursor(){
+	echo -en "\e8"
+}
+
+ClearScreen(){
+	echo -en "\e[2J\e[H"
+}
+
+ClearLine(){ 
+	echo -en "\e[2K" 
+}
+
+url=url=$COURSE_GIT_URL
 action='pull'
 depth=100000
 ellapsed=5
+proj='work'
 
-while getopts ":hpc:it:" opt; do
+while getopts ":hpc:it:j:" opt; do
   case ${opt} in
-  	h ) echo "Usage: $0 [-h] [-c depth] [-t time] [user1] [user2] ..."
-		echo "	$0                      Pull all repos"
+  	h ) display "Usage:${Bold} $0 ${Normal}[-h] [-c depth] [-t time] [user1] [user2] ...\n"
+		echo "	$0                      ${Red}Pull${Normal} all repos"
 		echo "  $0 user1 user2 ...      Pull repos for user1 user2"		
 		echo "	Options"
 		echo "      -c [depth]          Clone instead of pull with depth {default:all}"
@@ -25,6 +108,10 @@ while getopts ":hpc:it:" opt; do
 			depth=$OPTARG
 		fi
 		;;
+	j)  if [ $OPTARG != "" ]; then
+			proj=$OPTARG
+		fi
+		;;
 	t ) if [ $OPTARG != "" ]; then
 			ellapsed=$OPTARG		
 		fi		
@@ -36,121 +123,73 @@ while getopts ":hpc:it:" opt; do
 		;;
   esac
 done
+
+ClearScreen
+
 shift $((OPTIND -1))
 students=""
 while [ "$1" != "" ]; do
-	std=`echo $1 | sed 's#/##'`
-	students="$students $std"
+	students="$students $1"
 	shift
 done
 if [ "$students" == "" ]; then
-	students=`cat students.lst`
+	students=$(<students.lst)
 fi
+student_array=( ${students} )
+student_count=${#student_array[@]}
 
-# echo $students
-# echo "depth $depth"
-# echo "timeout $ellapsed"
-
-#exit 0
-
-function mkAllDirs() {
-	students="$*"
-	OK=1
-	for d in $students; do
-		d="$(echo -e "${d}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-		if [ ${d:0:1} == "#" ] ; then 
-			continue;
-		fi
-		if [ "$d" == "" ];then
-			continue
-		fi
-		if [ ! -d $d ]; then
-			mkdir $d
-			if [ ! -d $d ]; then
-				echo "Cannot mkdir $d"
-				OK=0
-				break
-			fi
-		fi
-	done
-
-	if [ $OK == 0 ]; then
-		exit 1
-	fi
-}
-
-function delay(){
-	if [[ $1 = 0 ]]; then
-		return
-	fi
-	echo -n "Thinking"
-	for x in `seq 1 $1` ; do
-		echo -n "."	    
-	    sleep 1   
-	done ; echo
-}
-
-function trim() {
-    local var="$*"
-    # remove leading whitespace characters
-    var="${var#"${var%%[![:space:]]*}"}"
-    # remove trailing whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"   
-    printf '%s' "$var"
-}
-
-function remove_local_changes()
-{
-	# Revert changes to modified files (modified, added, removed).
-	git reset --hard
-
-	# Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
-	git clean -fd
-}
-
-mkAllDirs $students
-
-#count=$(echo $students | wc -w | sed -e 's/^[[:space:]]*//')
-count=$(echo $students | wc -w) 
-#trim spaces
-count="${count#"${count%%[![:space:]]*}"}"
-
-curr=0
+display "${students} : ${student_count}\n\n"
 
 curdir=$PWD
-part1=`dirname "$PWD"`
-class=`basename "$PWD"`
-proj=`basename "$part1"`
-if [ $proj != 'web' ] && [ $proj != 'core' ]; then
-	proj='work'
+if [ -e class ]; then
+	class=$(<class)
+else
+	class=`basename "$PWD"`
 fi
 
-for d in $students; do
-	d="$(echo -e "${d}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+
+display "${LightGreen} Retrieving code updates from ${LightCyan}${student_count} ${LightGreen}students."
+display "${Cyan} [${LightCyan}\U2248 $(($student_count * $ellapsed))${Cyan} seconds]\n"
+rm -f *.log
+curr=0
+skip=0
+for d in $students; do	
+	d=$(trim $d)
 	if [ "$d" == "" ];then
 		continue
 	fi
+	((curr++))
+	ticker="${Normal}${Yellow} \U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027${Normal}${Blue}(${LightYellow}$curr${Normal}${Green}/$student_count${Blue}) ${Cyan}${Bold}"
 	if [ ${d:0:1} == "#" ] ; then 
-		echo "${bold}--------skip------------------------- ($curr/$count)${normal} $d"
+		display "${Bold}${Yellow} \UFE57${Normal}${LightYellow}\U00AB${Yellow}skipped${Normal}${LightYellow}\U00BB ${ticker} ${d:1} ${LightYellow}\U2715\n"
 		continue;
 	fi
-	((curr++))
-	if [ $curr -gt 1 ]; then
-		delay $ellapsed
-	fi	
-	echo "${bold}------------------------------------- ($curr/$count)${normal} $d"
-	cd $d
-	if [ $action == 'clone' ] || [ ! -e $proj ]; then
-		# pwd
-		rm -rf $proj		
-		#echo "git clone --depth=$depth git@$url:$class.$d/$proj.git"
-		git clone --depth=$depth git@$url:$class.$d/$proj.git
+	if [ $skip -eq 0 ]; then
+		skip=1
 	else
-		cd $proj
-		# pwd
-		remove_local_changes
-		# echo git $action
-		git $action		
+		SaveCursor
+		delay $ellapsed "\U2002\U2002 ${LightYellow}\U00AB${Cyan}shaving${LightYellow}\U00BB ${LightWhite}\U1F410\U2002\U2002" 
+		ClearLine
+		RestoreCursor
+	fi	
+	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then		
+		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
+		SaveCursor
+		git clone --depth=$depth git@$url:$class.$d/$proj.git $d > /dev/null 2> ${d}.log
+		gitstatus=$?
+		RestoreCursor
+		if [ $gitstatus -eq 0 ]; then		
+			display " ${LightGreen}  ✓ \n"  
+			rm ${d}.log
+		else
+			display " ${Bold}${LightRed} 🔥 ${LightCyan}${proj}${LightRed}?\n"
+		fi
+	else
+		cd $d		
+		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "		
+		SaveCursor
+		display "\n"		
+		
+		cd $curdir
 	fi
-	cd $curdir
 done
