@@ -185,11 +185,23 @@ for d in $students; do
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${proj}${LightRed}?\n"
 		fi
 	else
-		cd $d		
+		cd $d
 		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "		
-
+		SaveCursor
 		display "\n"		
-		git $action
-		cd $curdir
-	fi
+		
+		git reset --hard > /dev/null 2>&1		
+		git clean -fd > /dev/null 2>&1
+
+		git $action	> /dev/null 2>${d}.log
+		gitstatus=$?
+		RestoreCursor
+		if [ $gitstatus -eq 0 ]; then		
+			display " ${LightGreen}  ✓ \n"  
+			rm ${d}.log
+		else
+			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${proj}\n"
+		fi
+		ClearLine
+		cd $curdir	fi
 done
