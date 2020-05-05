@@ -187,9 +187,9 @@ for d in $students; do
 	else
 		cd $d		
 		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "		
-		SaveCursor
+
 		display "\n"		
-		
+		git $action
 		cd $curdir
 	fi
 done
