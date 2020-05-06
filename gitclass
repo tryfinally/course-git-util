@@ -80,8 +80,8 @@ action='pull'
 depth=100000
 ellapsed=5
 proj='work'
-
-while getopts ":hpc:it:j:" opt; do
+verbose=0
+while getopts ":hpc:ivt:j:" opt; do
   case ${opt} in
   	h ) display "Usage:${Bold} $0 ${Normal}[-h] [-c depth] [-t time] [user1] [user2] ...\n"
 		echo "	$0                      ${Red}Pull${Normal} all repos"
@@ -93,6 +93,8 @@ while getopts ":hpc:it:j:" opt; do
 		exit 0
 		;;
     p ) action="pull"
+    	;;
+	v ) verbose=1
     	;;
     c ) action="clone"
 		if [ $OPTARG != "" ]; then
@@ -200,5 +202,9 @@ for d in $students; do
 			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${proj}\n"
 		fi
 		ClearLine
+
+		if (( $verbose == 1 )); then
+			git --no-pager log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -5
+		fi
 		cd $curdir	fi
 done
