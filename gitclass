@@ -138,6 +138,11 @@ else
 	class=`basename "$PWD"`
 fi
 
+if [[ ${student_array[0]} = class* ]]; then
+		class="${student_array[0]/class:/}"
+		class=$(trim $class)		
+		student_array[0]=''		
+fi
 
 display "${LightGreen} Retrieving code updates from ${LightCyan}${student_count} ${LightGreen}students."
 display "${Cyan} [${LightCyan}\U2248 $(($student_count * $ellapsed))${Cyan} seconds]\n"
