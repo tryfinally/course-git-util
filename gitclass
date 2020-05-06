@@ -4,16 +4,11 @@ delay(){
 	if [[ $1 = 0 ]]; then
 		return
 	fi
-	# echo -n "Thinking ⌛"
 	echo -ne $2
 	delay_clocks=("\U1F550" "\U1F551" "\U1F552" "\U1F553" "\U1F554" "\U1F555" "\U1F556" "\U1F557" "\U1F558" "\U1F559" "\U1F55A")
 	i=0
 	for x in `seq 1 $1` ; do
-		# echo -n "."	    
-		# echo -n $3
-		# SaveCursor
 		echo -en "${delay_clocks[$i]}"
-		# RestoreCursor
 		((i++))
 	    sleep 1
 		echo -en "\033[2D"
@@ -37,10 +32,6 @@ function remove_local_changes()
 	# Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
 	git clean -fd
 }
-
-
-# bold=$(tput bold)
-# normal=$(tput sgr0)
 
 Bold="\e[1m"
 Normal="\e[0m"
