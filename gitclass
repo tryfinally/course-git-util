@@ -179,6 +179,7 @@ for d in $students; do
 			rm ${d}.log
 		else
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${proj}${LightRed}?\n"
+			echo -e "\ngit clone --depth=${depth} git@${url}:${class}.${d}/${proj}.git ${d}" >> ${d}.log
 		fi
 	else
 		cd $d
