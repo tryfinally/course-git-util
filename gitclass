@@ -200,9 +200,8 @@ for d in ${student_array[@]}; do
 
 		SaveCursor		
 			display "\n"				
-							
-			git reset --hard > /dev/null 2>&1		
-			git clean -fd > /dev/null 2>&1
+										
+			git stash > /dev/null 2>&1
 
 			git $action	> /dev/null 2>${d}.log
 			gitstatus=$?		
