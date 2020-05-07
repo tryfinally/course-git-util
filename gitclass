@@ -3,7 +3,7 @@
 delay(){
 	if [[ $1 = 0 ]]; then
 		return
-	fi
+	fi		
 	echo -ne $2
 	delay_clocks=("\U1F550" "\U1F551" "\U1F552" "\U1F553" "\U1F554" "\U1F555" "\U1F556" "\U1F557" "\U1F558" "\U1F559" "\U1F55A")
 	i=0
@@ -11,9 +11,17 @@ delay(){
 		echo -en "${delay_clocks[$i]}"
 		((i++))
 	    sleep 1
-		echo -en "\033[2D"
-		
+		echo -en "\033[2D"		
 	done ;
+}
+
+# wait between iterations
+# delay Time, iteration index, count of all iteratios
+waitForLoop(){	
+	if (( $2 < $3 )); then		
+		delay $1 "\U2002\U2002 ${LightYellow}\U00AB${Cyan}shaving${LightYellow}\U00BB ${LightWhite}\U1F410\U2002\U2002" 
+		ClearLine
+	fi
 }
 
 trim() {
@@ -71,11 +79,15 @@ ClearScreen(){
 	echo -en "\e[2J\e[H"
 }
 
+ClearToEndOfScreen(){
+	echo -en "\e[0J"
+}
+
 ClearLine(){ 
 	echo -en "\e[2K" 
 }
 
-url=url=$COURSE_GIT_URL
+url=$COURSE_GIT_URL
 action='pull'
 depth=100000
 ellapsed=5
@@ -88,7 +100,6 @@ while getopts ":hpc:ivt:j:" opt; do
 		echo "  $0 user1 user2 ...      Pull repos for user1 user2"		
 		echo "	Options"
 		echo "      -c [depth]          Clone instead of pull with depth {default:all}"
-		echo "      -v 	                Verbose mode"
 		echo "      -t n                Wait n seconds between repos pull"
 		echo "      -h                  This message"
 		exit 0
@@ -119,6 +130,7 @@ while getopts ":hpc:ivt:j:" opt; do
 done
 
 ClearScreen
+curdir=$PWD
 
 shift $((OPTIND -1))
 students=""
@@ -126,35 +138,39 @@ while [ "$1" != "" ]; do
 	students="$students $1"
 	shift
 done
-if [ "$students" == "" ]; then
-	students=$(<students.lst)
-fi
-student_array=( ${students} )
-student_count=${#student_array[@]}
 
-display "${students} : ${student_count}\n\n"
+students_file=$(<students.lst)
+student_array=( ${students_file} )
 
-curdir=$PWD
-if [ -e class ]; then
+student_count_delta=0
+# look for first line in students file if its a class alias
+if [[ ${student_array[0]} = class* ]]; then
+	class="${student_array[0]/class:/}"
+	class=$(trim $class)		
+	student_array[0]=''	
+	student_count_delta=-1	
+# or read class name from file
+elif [ -e class ]; then
 	class=$(<class)
 else
 	class=`basename "$PWD"`
 fi
 
-if [[ ${student_array[0]} = class* ]]; then
-		class="${student_array[0]/class:/}"
-		class=$(trim $class)		
-		student_array[0]=''		
+if [[ ! -z "${students// }" ]]; then	
+	student_array=( ${students} )
 fi
 
-display "${LightGreen} Retrieving code updates from ${LightCyan}${student_count} ${LightGreen}students."
-display "${Cyan} [${LightCyan}\U2248 $(($student_count * $ellapsed))${Cyan} seconds]\n"
+student_count=${#student_array[@]}
+student_count=$((student_count+student_count_delta))
+
+display "${Blue} Retrieving code updates for ${LightCyan}${proj}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class}${Blue}."
+display "${LightBlue} [${LightYellow}\U2248 ${LightCyan}$(($student_count * $ellapsed))${Blue} seconds${LightBlue}]\n"
 rm -f *.log
 curr=0
 skip=0
-for d in $students; do	
-	d=$(trim $d)
-	if [ "$d" == "" ];then
+for d in ${student_array[@]}; do	
+	d=$(trim $d)	
+	if [ "$d" == "" ];then		
 		continue
 	fi
 	((curr++))
@@ -163,19 +179,12 @@ for d in $students; do
 		display "${Bold}${Yellow} \UFE57${Normal}${LightYellow}\U00AB${Yellow}skipped${Normal}${LightYellow}\U00BB ${ticker} ${d:1} ${LightYellow}\U2715\n"
 		continue;
 	fi
-	if [ $skip -eq 0 ]; then
-		skip=1
-	else
-		SaveCursor
-		delay $ellapsed "\U2002\U2002 ${LightYellow}\U00AB${Cyan}shaving${LightYellow}\U00BB ${LightWhite}\U1F410\U2002\U2002" 
-		ClearLine
-		RestoreCursor
-	fi	
-	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then		
+
+	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
-		git clone --depth=$depth git@$url:$class.$d/$proj.git $d > /dev/null 2> ${d}.log
-		gitstatus=$?
+			git clone --depth=$depth git@$url:$class.$d/$proj.git $d > /dev/null 2> ${d}.log
+			gitstatus=$?
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then		
 			display " ${LightGreen}  ✓ \n"  
@@ -187,14 +196,15 @@ for d in $students; do
 	else
 		cd $d
 		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "		
-		SaveCursor
-		display "\n"		
-		
-		git reset --hard > /dev/null 2>&1		
-		git clean -fd > /dev/null 2>&1
 
-		git $action	> /dev/null 2>${d}.log
-		gitstatus=$?
+		SaveCursor		
+			display "\n"				
+							
+			git reset --hard > /dev/null 2>&1		
+			git clean -fd > /dev/null 2>&1
+
+			git $action	> /dev/null 2>${d}.log
+			gitstatus=$?		
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then		
 			display " ${LightGreen}  ✓ \n"  
@@ -202,10 +212,23 @@ for d in $students; do
 		else
 			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${proj}\n"
 		fi
-		ClearLine
-
+		
+		SaveCursor		
 		if (( $verbose == 1 )); then
+			line=$((curr+3))
+			display "\033[${line};28r"
+			RestoreCursor
+			SaveCursor
 			git --no-pager log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -5
+			waitForLoop $ellapsed $curr $((student_count+1))		
+			display "\033[;r"
 		fi
-		cd $curdir	fi
+		if (( $verbose != 1 )); then
+			waitForLoop $ellapsed $curr $student_count		
+		fi		
+		RestoreCursor
+		ClearToEndOfScreen
+		
+		cd $curdir
+	fi
 done
