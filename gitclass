@@ -101,6 +101,7 @@ while getopts ":hpc:ivt:j:" opt; do
 		echo "	Options"
 		echo "      -c [depth]          Clone instead of pull with depth {default:all}"
 		echo "      -t n                Wait n seconds between repos pull"
+		echo "      -v 	                Verbose mode"
 		echo "      -h                  This message"
 		exit 0
 		;;
