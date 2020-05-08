@@ -3,7 +3,7 @@
 delay(){
 	if [[ $1 = 0 ]]; then
 		return
-	fi		
+	fi	
 	echo -ne $2
 	delay_clocks=("\U1F550" "\U1F551" "\U1F552" "\U1F553" "\U1F554" "\U1F555" "\U1F556" "\U1F557" "\U1F558" "\U1F559" "\U1F55A")
 	i=0
@@ -11,7 +11,8 @@ delay(){
 		echo -en "${delay_clocks[$i]}"
 		((i++))
 	    sleep 1
-		echo -en "\033[2D"		
+		echo -en "\033[2D"
+		
 	done ;
 }
 
@@ -36,9 +37,9 @@ trim() {
 function remove_local_changes()
 {
 	# Revert changes to modified files (modified, added, removed).
-	git reset --hard
+	git reset --hard > /dev/null 2>&1
 	# Remove all untracked files and directories. (`-f` is `force`, `-d` is `remove directories`)
-	git clean -fd
+	git clean -fd > /dev/null 2>&1
 }
 
 Bold="\e[1m"
@@ -87,7 +88,7 @@ ClearLine(){
 	echo -en "\e[2K" 
 }
 
-url=$COURSE_GIT_URL
+url=${COURSE_GIT_URL:-"github.com" }
 action='pull'
 depth=100000
 ellapsed=5
@@ -101,7 +102,7 @@ while getopts ":hpc:ivt:j:" opt; do
 		echo "	Options"
 		echo "      -c [depth]          Clone instead of pull with depth {default:all}"
 		echo "      -t n                Wait n seconds between repos pull"
-		echo "      -v 	                Verbose mode"
+		echo "      -v 	                Verbose mode"		
 		echo "      -h                  This message"
 		exit 0
 		;;
@@ -190,26 +191,23 @@ for d in ${student_array[@]}; do
 		if [ $gitstatus -eq 0 ]; then		
 			display " ${LightGreen}  ✓ \n"  
 			rm ${d}.log
-		else
+		else			
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${proj}${LightRed}?\n"
 			echo -e "\ngit clone --depth=${depth} git@${url}:${class}.${d}/${proj}.git ${d}" >> ${d}.log
 		fi
 	else
 		cd $d
-		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "		
-
+		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "				
 		SaveCursor		
-			display "\n"				
-										
+			display "\n"							
 			git stash > /dev/null 2>&1
-
 			git $action	> /dev/null 2>${d}.log
 			gitstatus=$?		
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then		
 			display " ${LightGreen}  ✓ \n"  
 			rm ${d}.log
-		else
+		else			
 			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${proj}\n"
 		fi
 		
@@ -219,7 +217,7 @@ for d in ${student_array[@]}; do
 			display "\033[${line};28r"
 			RestoreCursor
 			SaveCursor
-			git --no-pager log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -5
+			git --no-pager log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -2
 			waitForLoop $ellapsed $curr $((student_count+1))		
 			display "\033[;r"
 		fi
