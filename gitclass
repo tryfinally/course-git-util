@@ -88,11 +88,11 @@ ClearLine(){
 	echo -en "\e[2K" 
 }
 
-url=${COURSE_GIT_URL:-"github.com" }
+url=${COURSE_GIT_URL:-'guthub.com'}
 action='pull'
 depth=100000
 ellapsed=5
-proj='work'
+repo=${COURSE_GIT_REPO:-'work'}
 verbose=0
 while getopts ":hpc:ivt:j:" opt; do
   case ${opt} in
@@ -116,7 +116,7 @@ while getopts ":hpc:ivt:j:" opt; do
 		fi
 		;;
 	j)  if [ $OPTARG != "" ]; then
-			proj=$OPTARG
+			repo=$OPTARG
 		fi
 		;;
 	t ) if [ $OPTARG != "" ]; then
@@ -165,7 +165,7 @@ fi
 student_count=${#student_array[@]}
 student_count=$((student_count+student_count_delta))
 
-display "${Blue} Retrieving code updates for ${LightCyan}${proj}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class}${Blue}."
+display "${Blue} Retrieving code updates for ${LightCyan}${repo}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class}${Blue}."
 display "${LightBlue} [${LightYellow}\U2248 ${LightCyan}$(($student_count * $ellapsed))${Blue} seconds${LightBlue}]\n"
 rm -f *.log
 curr=0
@@ -185,15 +185,15 @@ for d in ${student_array[@]}; do
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
-			git clone --depth=$depth git@$url:$class.$d/$proj.git $d > /dev/null 2> ${d}.log
+			git clone --depth=$depth git@$url:$class.$d/$repo.git $d > /dev/null 2> ${d}.log
 			gitstatus=$?
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then		
 			display " ${LightGreen}  ✓ \n"  
 			rm ${d}.log
 		else			
-			display " ${Bold}${LightRed} 🔥 ${LightCyan}${proj}${LightRed}?\n"
-			echo -e "\ngit clone --depth=${depth} git@${url}:${class}.${d}/${proj}.git ${d}" >> ${d}.log
+			display " ${Bold}${LightRed} 🔥 ${LightCyan}${repo}${LightRed}?\n"
+			echo -e "\ngit clone --depth=${depth} git@${url}:${class}.${d}/${repo}.git ${d}" >> ${d}.log
 		fi
 	else
 		cd $d
@@ -208,7 +208,7 @@ for d in ${student_array[@]}; do
 			display " ${LightGreen}  ✓ \n"  
 			rm ${d}.log
 		else			
-			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${proj}\n"
+			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${repo}\n"
 		fi
 		
 		SaveCursor		
