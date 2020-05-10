@@ -88,13 +88,15 @@ ClearLine(){
 	echo -en "\e[2K" 
 }
 
-url=${COURSE_GIT_URL:-'guthub.com'}
+url=${COURSE_GIT_URL:-'github.com'}  // commit message : rename command line flag for repo name + add flag for brnach name
 action='pull'
 depth=100000
 ellapsed=5
 repo=${COURSE_GIT_REPO:-'work'}
+branch='master'
 verbose=0
-while getopts ":hpc:ivt:j:" opt; do
+
+while getopts ":hpc:vr:b:it:" opt; do
   case ${opt} in
   	h ) display "Usage:${Bold} $0 ${Normal}[-h] [-c depth] [-t time] [user1] [user2] ...\n"
 		echo "	$0                      ${Red}Pull${Normal} all repos"
@@ -108,15 +110,19 @@ while getopts ":hpc:ivt:j:" opt; do
 		;;
     p ) action="pull"
     	;;
-	v ) verbose=1
-    	;;
     c ) action="clone"
 		if [ $OPTARG != "" ]; then
 			depth=$OPTARG
 		fi
 		;;
-	j)  if [ $OPTARG != "" ]; then
+	v ) verbose=1
+    	;;
+	r)  if [ $OPTARG != "" ]; then
 			repo=$OPTARG
+		fi
+		;;
+	b)  if [ $OPTARG != "" ]; then
+			branch=$OPTARG
 		fi
 		;;
 	t ) if [ $OPTARG != "" ]; then
