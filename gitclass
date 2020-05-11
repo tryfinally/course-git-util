@@ -88,7 +88,7 @@ ClearLine(){
 	echo -en "\e[2K" 
 }
 
-url=${COURSE_GIT_URL:-'github.com'}  // commit message : rename command line flag for repo name + add flag for brnach name
+url=${COURSE_GIT_URL:-'github.com'}
 action='pull'
 depth=100000
 ellapsed=5
@@ -98,14 +98,17 @@ verbose=0
 
 while getopts ":hpc:vr:b:it:" opt; do
   case ${opt} in
-  	h ) display "Usage:${Bold} $0 ${Normal}[-h] [-c depth] [-t time] [user1] [user2] ...\n"
-		echo "	$0                      ${Red}Pull${Normal} all repos"
-		echo "  $0 user1 user2 ...      Pull repos for user1 user2"		
-		echo "	Options"
-		echo "      -c [depth]          Clone instead of pull with depth {default:all}"
-		echo "      -t n                Wait n seconds between repos pull"
-		echo "      -v 	                Verbose mode"		
-		echo "      -h                  This message"
+  	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
+		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
+		display "\t $0 user1 user2 ...       \t pull repos for user1 user2...\n"		
+		display "${Bold}Options${Normal}\n"
+		display "\t -p           \t\t pull, this is the default\n"
+		display "\t -c <depth>   \t clone optionaly with depth\n"
+		display "\t -r <repo>    \t clone repo named repo\n"
+	  # display "\t -i                  Imemdiate, wait between action on repos\n"
+		display "\t -t n         \t\t Wait n seconds between actions on repos\n"
+		display "\t -v 	         \t\t Verbose mode\n"		
+		display "\t -h           \t\t help message\n"
 		exit 0
 		;;
     p ) action="pull"
