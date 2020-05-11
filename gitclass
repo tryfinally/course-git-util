@@ -176,7 +176,7 @@ student_count=$((student_count+student_count_delta))
 
 display "${Blue} Retrieving code updates for ${LightCyan}${repo}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class}${Blue}."
 display "${LightBlue} [${LightYellow}\U2248 ${LightCyan}$(($student_count * $ellapsed))${Blue} seconds${LightBlue}]\n"
-rm -f *.log
+
 curr=0
 skip=0
 for d in ${student_array[@]}; do	
@@ -191,6 +191,7 @@ for d in ${student_array[@]}; do
 		continue;
 	fi
 
+	rm -f ${d}.log
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
