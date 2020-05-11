@@ -95,8 +95,9 @@ ellapsed=5
 repo=${COURSE_GIT_REPO:-'work'}
 branch='master'
 verbose=0
+klass=''
 
-while getopts ":hpc:vr:b:it:" opt; do
+while getopts ":hpc:vk::r:b:it:" opt; do
   case ${opt} in
   	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
 		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
@@ -106,6 +107,7 @@ while getopts ":hpc:vr:b:it:" opt; do
 		display "\t -c <depth>   \t clone optionaly with depth\n"
 		display "\t -r <repo>    \t clone repo named repo\n"
 	  # display "\t -i                  Imemdiate, wait between action on repos\n"
+	  	display "\t -k <class>   \t\t class/course name. user will be class.user\n"
 		display "\t -t n         \t\t Wait n seconds between actions on repos\n"
 		display "\t -v 	         \t\t Verbose mode\n"		
 		display "\t -h           \t\t help message\n"
@@ -120,6 +122,11 @@ while getopts ":hpc:vr:b:it:" opt; do
 		;;
 	v ) verbose=1
     	;;
+	k)  klass_arg=1
+		if [ $OPTARG != "" ]; then
+			klass=$OPTARG
+		fi
+		;;
 	r)  if [ $OPTARG != "" ]; then
 			repo=$OPTARG
 		fi
@@ -154,17 +161,23 @@ students_file=$(<students.lst)
 student_array=( ${students_file} )
 
 student_count_delta=0
-# look for first line in students file if its a class alias
-if [[ ${student_array[0]} = class* ]]; then
+if [[ "$klass_arg" == "1" ]]; then
+	class=klass
+elif [[ ${student_array[0]} = class* ]]; then
+	# look for first line in students file if its a class alias
 	class="${student_array[0]/class:/}"
-	class=$(trim $class)		
+	class=$(trim $class)
+	class_prefix="${class}."		
 	student_array[0]=''	
 	student_count_delta=-1	
-# or read class name from file
 elif [ -e class ]; then
+	# or read class name from file
 	class=$(<class)
+	class=$(trim $class)
+	class_prefix="${class}."		
 else
 	class=`basename "$PWD"`
+	class_prefix="${class}."
 fi
 
 if [[ ! -z "${students// }" ]]; then	
@@ -195,7 +208,7 @@ for d in ${student_array[@]}; do
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
-			git clone --depth=$depth git@$url:$class.$d/$repo.git $d > /dev/null 2> ${d}.log
+			git clone --depth=$depth git@$url:${class_prefix}$d/$repo.git $d > /dev/null 2> ${d}.log
 			gitstatus=$?
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then		
@@ -203,7 +216,7 @@ for d in ${student_array[@]}; do
 			rm ${d}.log
 		else			
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${repo}${LightRed}?\n"
-			echo -e "\ngit clone --depth=${depth} git@${url}:${class}.${d}/${repo}.git ${d}" >> ${d}.log
+			echo -e "\ngit clone --depth=${depth} git@${url}:${class_prefix}${d}/${repo}.git ${d}" >> ${d}.log
 		fi
 	else
 		cd $d
