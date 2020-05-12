@@ -97,7 +97,7 @@ branch='master'
 verbose=0
 klass=''
 
-while getopts ":hpc:vk::r:b:it:" opt; do
+while getopts ":hpc:vk::r:b:dit:" opt; do
   case ${opt} in
   	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
 		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
@@ -135,12 +135,14 @@ while getopts ":hpc:vk::r:b:it:" opt; do
 			branch=$OPTARG
 		fi
 		;;
+	d) action="delete"
+		;;
+	i) ellapsed=0
+		;;
 	t ) if [ $OPTARG != "" ]; then
 			ellapsed=$OPTARG		
 		fi		
 		;; 
-	i) ellapsed=0
-		;;
     \? ) echo "Invalid Option: -$OPTARG" 1>&2
       	exit 1
 		;;
@@ -205,6 +207,10 @@ for d in ${student_array[@]}; do
 	fi
 
 	rm -f ${d}.log
+	if [ $action == "delete" ]; then
+		rm -Rf ${d}
+		continue;
+	fi
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
