@@ -108,6 +108,7 @@ while getopts ":hpc:vk::r:b:dit:" opt; do
 		display "\t -r <repo>    \t clone repo named repo\n"
 	  # display "\t -i                  Imemdiate, wait between action on repos\n"
 	  	display "\t -k <class>   \t\t class/course name. user will be class.user\n"
+		display "\t -d           \t\t Remove local repository\n"
 		display "\t -t n         \t\t Wait n seconds between actions on repos\n"
 		display "\t -v 	         \t\t Verbose mode\n"		
 		display "\t -h           \t\t help message\n"
@@ -208,6 +209,7 @@ for d in ${student_array[@]}; do
 
 	rm -f ${d}.log
 	if [ $action == "delete" ]; then
+		display "${Bold}${LightRed} \U2623 ${Normal}${LightYellow}\U00AB${Yellow}removed${Normal}${LightYellow}\U00BB ${ticker} ${d} ${LightRed}\U2715\n"
 		rm -Rf ${d}
 		continue;
 	fi
