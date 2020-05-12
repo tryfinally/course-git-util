@@ -185,10 +185,11 @@ fi
 
 if [[ ! -z "${students// }" ]]; then	
 	student_array=( ${students} )
+	student_count=${#student_array[@]}
+else
+	student_count=${#student_array[@]}
+	student_count=$((student_count+student_count_delta))
 fi
-
-student_count=${#student_array[@]}
-student_count=$((student_count+student_count_delta))
 
 display "${Blue} Retrieving code updates for ${LightCyan}${repo}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class}${Blue}."
 display "${LightBlue} [${LightYellow}\U2248 ${LightCyan}$(($student_count * $ellapsed))${Blue} seconds${LightBlue}]\n"
