@@ -95,7 +95,7 @@ load_students(){
 		# look for first line in students file if its a class alias
 		class="${student_array[0]/class:/}"
 		class=$(trim $class)
-		class_prefix="${class}."		
+		class_prefix_from_file="${class}."		
 		student_array[0]=''	
 		student_count_delta=-1
 	fi
@@ -194,6 +194,9 @@ if [[ ! -z "${students// }" ]]; then
 else
 	if [ -z "${student_array}" ]; then
 		load_students
+		if [ -z "${class_prefix}" ]; then
+			class_prefix=$(class_prefix_from_file)
+		fi
 	fi
 	student_count=${#student_array[@]}
 	student_count=$((student_count+student_count_delta))
