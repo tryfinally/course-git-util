@@ -88,6 +88,19 @@ ClearLine(){
 	echo -en "\e[2K" 
 }
 
+load_students(){
+	students_file=$(<students.lst)
+	student_array=( ${students_file} )
+	if [[ ${student_array[0]} = class* ]]; then
+		# look for first line in students file if its a class alias
+		class="${student_array[0]/class:/}"
+		class=$(trim $class)
+		class_prefix="${class}."		
+		student_array[0]=''	
+		student_count_delta=-1
+	fi
+}
+
 url=${COURSE_GIT_URL:-'github.com'}
 action='pull'
 depth=100000
@@ -161,23 +174,14 @@ while [ "$1" != "" ]; do
 done
 
 student_count_delta=0
-if [ -z "$class_prefix" ]; then
+if [ -z "$klass_arg" ]; then
 	if [ -e class ]; then
 		# or read class name from file
 		class=$(<class)
 		class=$(trim $class)
 		class_prefix="${class}."		
 	elif [ -e students.lst ]; then
-		students_file=$(<students.lst)
-		student_array=( ${students_file} )
-		if [[ ${student_array[0]} = class* ]]; then
-			# look for first line in students file if its a class alias
-			class="${student_array[0]/class:/}"
-			class=$(trim $class)
-			class_prefix="${class}."		
-			student_array[0]=''	
-			student_count_delta=-1
-		fi
+		load_students
 	else
 		class=`basename "$PWD"`
 		class_prefix="${class}."
@@ -188,6 +192,9 @@ if [[ ! -z "${students// }" ]]; then
 	student_array=( ${students} )
 	student_count=${#student_array[@]}
 else
+	if [ -z "${student_array}" ]; then
+		load_students
+	fi
 	student_count=${#student_array[@]}
 	student_count=$((student_count+student_count_delta))
 fi
