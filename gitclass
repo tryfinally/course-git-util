@@ -164,6 +164,10 @@ while getopts ":hpc:vk:r:b:dit:" opt; do
   esac
 done
 
+if [ $verbose == 1  ]; then
+	ellapsed=6
+fi
+
 ClearScreen
 curdir=$PWD
 
