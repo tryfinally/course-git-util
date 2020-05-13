@@ -108,7 +108,7 @@ ellapsed=5
 repo=${COURSE_GIT_REPO:-'work'}
 branch='master'
 verbose=0
-klass=''
+class_prefix=''
 
 while getopts ":hpc:vk::r:b:dit:" opt; do
   case ${opt} in
