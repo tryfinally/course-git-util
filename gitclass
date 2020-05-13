@@ -125,7 +125,7 @@ while getopts ":hpc:vk::r:b:dit:" opt; do
     	;;
 	k)  klass_arg=1
 		if [ $OPTARG != "" ]; then
-			klass=$OPTARG
+			class_prefix="${OPTARG}."
 		fi
 		;;
 	r)  if [ $OPTARG != "" ]; then
