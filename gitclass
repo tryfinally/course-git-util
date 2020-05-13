@@ -162,7 +162,7 @@ done
 
 student_count_delta=0
 if [[ "$klass_arg" == "1" ]]; then
-	class=klass
+	class="$class_prefix"
 elif [ -e class ]; then
 	# or read class name from file
 	class=$(<class)
