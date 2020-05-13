@@ -88,6 +88,7 @@ ClearLine(){
 	echo -en "\e[2K" 
 }
 
+class_prefix_from_file=''
 load_students(){
 	students_file=$(<students.lst)
 	student_array=( ${students_file} )
@@ -110,7 +111,7 @@ branch='master'
 verbose=0
 class_prefix=''
 
-while getopts ":hpc:vk::r:b:dit:" opt; do
+while getopts ":hpc:vk:r:b:dit:" opt; do
   case ${opt} in
   	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
 		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
@@ -195,7 +196,7 @@ else
 	if [ -z "${student_array}" ]; then
 		load_students
 		if [ -z "${class_prefix}" ]; then
-			class_prefix=$(class_prefix_from_file)
+			class_prefix=$class_prefix_from_file
 		fi
 	fi
 	student_count=${#student_array[@]}
