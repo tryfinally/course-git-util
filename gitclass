@@ -161,27 +161,27 @@ while [ "$1" != "" ]; do
 done
 
 student_count_delta=0
-if [[ "$klass_arg" == "1" ]]; then
-	class="$class_prefix"
-elif [ -e class ]; then
-	# or read class name from file
-	class=$(<class)
-	class=$(trim $class)
-	class_prefix="${class}."		
-elif [ -e students.lst ]; then
-	students_file=$(<students.lst)
-	student_array=( ${students_file} )
-	if [[ ${student_array[0]} = class* ]]; then
-		# look for first line in students file if its a class alias
-		class="${student_array[0]/class:/}"
+if [ -z "$class_prefix" ]; then
+	if [ -e class ]; then
+		# or read class name from file
+		class=$(<class)
 		class=$(trim $class)
 		class_prefix="${class}."		
-		student_array[0]=''	
-		student_count_delta=-1
+	elif [ -e students.lst ]; then
+		students_file=$(<students.lst)
+		student_array=( ${students_file} )
+		if [[ ${student_array[0]} = class* ]]; then
+			# look for first line in students file if its a class alias
+			class="${student_array[0]/class:/}"
+			class=$(trim $class)
+			class_prefix="${class}."		
+			student_array[0]=''	
+			student_count_delta=-1
+		fi
+	else
+		class=`basename "$PWD"`
+		class_prefix="${class}."
 	fi
-else
-	class=`basename "$PWD"`
-	class_prefix="${class}."
 fi
 
 if [[ ! -z "${students// }" ]]; then	
@@ -192,11 +192,12 @@ else
 	student_count=$((student_count+student_count_delta))
 fi
 
-display "${Blue} Retrieving code updates for ${LightCyan}${repo}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class}${Blue}."
+display "${Blue} Retrieving code updates for ${LightCyan}${repo}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class_prefix}${Blue}"
 display "${LightBlue} [${LightYellow}\U2248 ${LightCyan}$(($student_count * $ellapsed))${Blue} seconds${LightBlue}]\n"
 
 curr=0
 skip=0
+
 for d in ${student_array[@]}; do	
 	d=$(trim $d)	
 	if [ "$d" == "" ];then		
