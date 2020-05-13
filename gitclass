@@ -183,6 +183,7 @@ if [ -z "$klass_arg" ]; then
 		class_prefix="${class}."		
 	elif [ -e students.lst ]; then
 		load_students
+		class_prefix=$class_prefix_from_file
 	else
 		class=`basename "$PWD"`
 		class_prefix="${class}."
@@ -195,9 +196,6 @@ if [[ ! -z "${students// }" ]]; then
 else
 	if [ -z "${student_array}" ]; then
 		load_students
-		if [ -z "${class_prefix}" ]; then
-			class_prefix=$class_prefix_from_file
-		fi
 	fi
 	student_count=${#student_array[@]}
 	student_count=$((student_count+student_count_delta))
