@@ -106,11 +106,11 @@ while getopts ":hpc:vk::r:b:dit:" opt; do
 		display "\t -p           \t\t pull, this is the default\n"
 		display "\t -c <depth>   \t clone optionaly with depth\n"
 		display "\t -r <repo>    \t clone repo named repo\n"
-	  # display "\t -i                  Imemdiate, wait between action on repos\n"
-	  	display "\t -k <class>   \t\t class/course name. user will be class.user\n"
-		display "\t -d           \t\t Remove local repository\n"
-		display "\t -t n         \t\t Wait n seconds between actions on repos\n"
-		display "\t -v 	         \t\t Verbose mode\n"		
+	  # display "\t -i           \t immediate, no wait between actions on repos\n"
+	  	display "\t -k <class>   \t class/course name. user will be class.user\n"
+		display "\t -d           \t\t remove local repository\n"
+		display "\t -t n         \t\t wait n seconds between actions on repos\n"
+		display "\t -v 	         \t\t verbose mode\n"		
 		display "\t -h           \t\t help message\n"
 		exit 0
 		;;
@@ -160,24 +160,25 @@ while [ "$1" != "" ]; do
 	shift
 done
 
-students_file=$(<students.lst)
-student_array=( ${students_file} )
-
 student_count_delta=0
 if [[ "$klass_arg" == "1" ]]; then
 	class=klass
-elif [[ ${student_array[0]} = class* ]]; then
-	# look for first line in students file if its a class alias
-	class="${student_array[0]/class:/}"
-	class=$(trim $class)
-	class_prefix="${class}."		
-	student_array[0]=''	
-	student_count_delta=-1	
 elif [ -e class ]; then
 	# or read class name from file
 	class=$(<class)
 	class=$(trim $class)
 	class_prefix="${class}."		
+elif [ -e students.lst ]; then
+	students_file=$(<students.lst)
+	student_array=( ${students_file} )
+	if [[ ${student_array[0]} = class* ]]; then
+		# look for first line in students file if its a class alias
+		class="${student_array[0]/class:/}"
+		class=$(trim $class)
+		class_prefix="${class}."		
+		student_array[0]=''	
+		student_count_delta=-1
+	fi
 else
 	class=`basename "$PWD"`
 	class_prefix="${class}."
