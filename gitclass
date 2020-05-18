@@ -172,11 +172,7 @@ ClearScreen
 curdir=$PWD
 
 shift $((OPTIND -1))
-students=""
-while [ "$1" != "" ]; do
-	students="$students $1"
-	shift
-done
+students=$*
 
 student_count_delta=0
 if [ -z "$klass_arg" ]; then
