@@ -260,8 +260,8 @@ for d in ${student_array[@]}; do
 			display "\033[${line};28r"
 			RestoreCursor
 			SaveCursor
-			git --no-pager log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -2
-			waitForLoop $ellapsed $curr $((student_count+1))		
+			git log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -5
+			# waitForLoop $ellapsed $curr $((student_count+1))		
 			display "\033[;r"
 		fi
 		if (( $verbose != 1 )); then
