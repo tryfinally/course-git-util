@@ -111,7 +111,7 @@ branch='master'
 verbose=0
 class_prefix=''
 
-while getopts ":hpc:vk:r:b:dit:" opt; do
+while getopts ":hpc:vk:u:r:b:dit:" opt; do
   case ${opt} in
   	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
 		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
@@ -122,6 +122,7 @@ while getopts ":hpc:vk:r:b:dit:" opt; do
 		display "\t -r <repo>    \t clone repo named repo\n"
 	  # display "\t -i           \t immediate, no wait between actions on repos\n"
 	  	display "\t -k <class>   \t class/course name. user will be class.user\n"
+		display "\t -u <URL>   	 \t git base URL\n"
 		display "\t -d           \t\t remove local repository\n"
 		display "\t -t n         \t\t wait n seconds between actions on repos\n"
 		display "\t -v 	         \t\t verbose mode\n"		
@@ -140,6 +141,10 @@ while getopts ":hpc:vk:r:b:dit:" opt; do
 	k)  klass_arg=1
 		if [ $OPTARG != "" ]; then
 			class_prefix="${OPTARG}."
+		fi
+		;;
+	u)  if [ $OPTARG != "" ]; then
+			url=$OPTARG
 		fi
 		;;
 	r)  if [ $OPTARG != "" ]; then
