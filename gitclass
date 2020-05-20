@@ -104,7 +104,7 @@ load_students(){
 
 url=${COURSE_GIT_URL:-'github.com'}
 action='pull'
-depth=1
+depth_flag=""
 ellapsed=5
 repo=${COURSE_GIT_REPO:-'work'}
 branch='master'
@@ -133,7 +133,7 @@ while getopts ":hpc:vk:u:r:b:dit:" opt; do
     	;;
     c ) action="clone"
 		if [ $OPTARG != "" ]; then
-			depth=$OPTARG
+			depth_flag="--depth={$OPTARG}"
 		fi
 		;;
 	v ) verbose=1
@@ -233,7 +233,7 @@ for d in ${student_array[@]}; do
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
-			git clone --depth=$depth git@$url:${class_prefix}$d/$repo.git $d > /dev/null 2> ${d}.log
+			git clone $depth_flag git@$url:${class_prefix}$d/$repo.git $d > /dev/null 2> ${d}.log
 			gitstatus=$?
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then		
@@ -241,7 +241,7 @@ for d in ${student_array[@]}; do
 			rm ${d}.log
 		else			
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${repo}${LightRed}?\n"
-			echo -e "\ngit clone --depth=${depth} git@${url}:${class_prefix}${d}/${repo}.git ${d}" >> ${d}.log
+			echo -e "\ngit clone ${depth_flag} git@${url}:${class_prefix}${d}/${repo}.git ${d}" >> ${d}.log
 		fi
 	else
 		cd $d
