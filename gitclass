@@ -142,7 +142,7 @@ while getopts ":hpc:vk:u:r:b:dit:n" opt; do
 		display "${Bold}Options${Normal}\n"
 		display "\t -p           \t\t pull, this is the default\n"
 		display "\t -c <depth>   \t clone optionaly with depth\n"
-		display "\t -r <repo>    \t clone repo named repo\n"
+		display "\t -r <repo>    \t git remote repo name, by default taken from $COURSE_GIT_REPO or defaulted to 'work'\n"
 	  # display "\t -i           \t immediate, no wait between actions on repos\n"
 	  	display "\t -k <class>   \t class/course name. user will be class.user\n"
 		display "\t -u <URL>   	 \t git base URL\n"
