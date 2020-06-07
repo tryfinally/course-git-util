@@ -42,27 +42,49 @@ function remove_local_changes()
 	git clean -fd > /dev/null 2>&1
 }
 
-Bold="\e[1m"
-Normal="\e[0m"
-Black="\e[30m"
-Red="\e[31m"
-Green="\e[32m"
-Yellow="\e[33m"
-Blue="\e[34m"
-Magenta="\e[35m"
-Cyan="\e[36m"
-White="\e[37m"
 
-DarkGray="\e[90m"
-LightRed="\e[91m"
-LightGreen="\e[92m"
-LightYellow="\e[93m"
-LightBlue="\e[94m"
-LightMagenta="\e[95m"
-LightCyan="\e[96m"
-LightWhite="\e[97m"
+function WithColor() {	
+	Normal="\e[0m"
+	Bold="\e[1m"
+	Black="\e[30m"
+	White="\e[37m"
+	if [[ $1 == 0 ]]; then
+		Red=$Normal
+		Green=$Normal
+		Yellow=$Normal
+		Blue=$Normal
+		Magenta=$Normal
+		Cyan=$Normal
 
+		DarkGray=$Normal
+		LightRed=$Normal
+		LightGreen=$Normal
+		LightYellow=$Normal
+		LightBlue=$Normal
+		LightMagenta=$Normal
+		LightCyan=$Normal
+		LightWhite=$Normal
+	else
+		Red="\e[31m"
+		Green="\e[32m"
+		Yellow="\e[33m"
+		Blue="\e[34m"
+		Magenta="\e[35m"
+		Cyan="\e[36m"
 
+		DarkGray="\e[90m"
+		LightRed="\e[91m"
+		LightGreen="\e[92m"
+		LightYellow="\e[93m"
+		LightBlue="\e[94m"
+		LightMagenta="\e[95m"
+		LightCyan="\e[96m"
+		LightWhite="\e[97m"
+	fi
+}
+
+UU_HCHEVRONB="\U00AB"
+UU_HCHEVRONE="\U00BB"
 display(){
 	echo -en $*
 	echo -en ${Normal}
@@ -106,12 +128,13 @@ url=${COURSE_GIT_URL:-'github.com'}
 action='pull'
 depth_flag=""
 ellapsed=5
+verbose=0
+color=1
 repo=${COURSE_GIT_REPO:-'work'}
 branch='master'
-verbose=0
 class_prefix=''
 
-while getopts ":hpc:vk:u:r:b:dit:" opt; do
+while getopts ":hpc:vk:u:r:b:dit:n" opt; do
   case ${opt} in
   	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
 		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
@@ -125,7 +148,8 @@ while getopts ":hpc:vk:u:r:b:dit:" opt; do
 		display "\t -u <URL>   	 \t git base URL\n"
 		display "\t -d           \t\t remove local repository\n"
 		display "\t -t n         \t\t wait n seconds between actions on repos\n"
-		display "\t -v 	         \t\t verbose mode\n"		
+		display "\t -v 	         \t\t verbose mode\n"
+		display "\t -n 	         \t\t no color\n"		
 		display "\t -h           \t\t help message\n"
 		exit 0
 		;;
@@ -163,6 +187,8 @@ while getopts ":hpc:vk:u:r:b:dit:" opt; do
 			ellapsed=$OPTARG		
 		fi		
 		;; 
+	n ) color=0		
+		;; 
     \? ) echo "Invalid Option: -$OPTARG" 1>&2
       	exit 1
 		;;
@@ -173,6 +199,7 @@ if [ $verbose == 1  ]; then
 	ellapsed=6
 fi
 
+WithColor $color
 ClearScreen
 curdir=$PWD
 
@@ -231,7 +258,7 @@ for d in ${student_array[@]}; do
 		continue;
 	fi
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
-		display "${LightRed} ✇ ${LightYellow}\U00AB${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
+		display "${Normal}${LightRed}✇ ${LightYellow}${UU_HCHEVRONB}${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
 			git clone $depth_flag git@$url:${class_prefix}$d/$repo.git $d > /dev/null 2> ${d}.log
 			gitstatus=$?
@@ -245,7 +272,7 @@ for d in ${student_array[@]}; do
 		fi
 	else
 		cd $d
-		display "${LightGreen} ✇ ${LightYellow}\U00AB${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "				
+		display "${LightGreen}✇ ${LightYellow}\U00AB ${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "				
 		SaveCursor		
 			display "\n"							
 			git stash > /dev/null 2>&1
