@@ -10,13 +10,13 @@ Used extensivly in my Advanced C++ Courses.
 ### First time
 ```
 mkdir cs101; cd cs101
-./gitclass -r hw jane cindy tao karim
+./gitclass -o mhz-ninjas -ik cs101  hw jane cindy tao karim
 ```
 * Create folder for course `cs101`
 * Clone repos for students: jane cindy tao karim.
-* Repo name is `hw`
-* full git URL is `git@${COURSE_GIT_URL}:cs101.${STUDENT}/hw.git`
-* for jane it will be something like `git@$gitlab.cslab:cs101.jane/hw.git
+* Repo name is `cs101`
+* full git URL is `git@${COURSE_GIT_URL}:mhz-ninjas/cs101.${STUDENT}.git`
+* for jane it will be something like `git@$github.com:mhz-ninjas/cs101.jane.git
 
 Alternatively, if we have no common prefix for user names:
 ```
