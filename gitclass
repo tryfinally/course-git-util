@@ -3,7 +3,7 @@
 delay(){
 	if [[ $1 = 0 ]]; then
 		return
-	fi	
+	fi
 	echo -ne $2
 	delay_clocks=("\U1F550" "\U1F551" "\U1F552" "\U1F553" "\U1F554" "\U1F555" "\U1F556" "\U1F557" "\U1F558" "\U1F559" "\U1F55A")
 	i=0
@@ -12,15 +12,15 @@ delay(){
 		((i++))
 	    sleep 1
 		echo -en "\033[2D"
-		
+
 	done ;
 }
 
 # wait between iterations
 # delay Time, iteration index, count of all iteratios
-waitForLoop(){	
-	if (( $2 < $3 )); then		
-		delay $1 "\U2002\U2002 ${LightYellow}\U00AB${Cyan}shaving${LightYellow}\U00BB ${LightWhite}\U1F410\U2002\U2002" 
+waitForLoop(){
+	if (( $2 < $3 )); then
+		delay $1 "\U2002\U2002 ${LightYellow}\U00AB${Cyan}shaving${LightYellow}\U00BB ${LightWhite}\U1F410\U2002\U2002"
 		ClearLine
 	fi
 }
@@ -30,8 +30,8 @@ trim() {
     # remove leading whitespace characters
     var="${var#"${var%%[![:space:]]*}"}"
     # remove trailing whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"   
-	echo "${var}"    
+    var="${var%"${var##*[![:space:]]}"}"
+	echo "${var}"
 }
 
 function remove_local_changes()
@@ -43,7 +43,7 @@ function remove_local_changes()
 }
 
 
-function WithColor() {	
+function WithColor() {
 	Normal="\e[0m"
 	Bold="\e[1m"
 	Black="\e[30m"
@@ -106,20 +106,20 @@ ClearToEndOfScreen(){
 	echo -en "\e[0J"
 }
 
-ClearLine(){ 
-	echo -en "\e[2K" 
+ClearLine(){
+	echo -en "\e[2K"
 }
 
 class_prefix_from_file=''
 load_students(){
-	students_file=$(<students.lst)
+	students_file=$(<_students.lst)
 	student_array=( ${students_file} )
 	if [[ ${student_array[0]} = class* ]]; then
 		# look for first line in students file if its a class alias
 		class="${student_array[0]/class:/}"
 		class=$(trim $class)
-		class_prefix_from_file="${class}."		
-		student_array[0]=''	
+		class_prefix_from_file="${class}."
+		student_array[0]=''
 		student_count_delta=-1
 	fi
 }
@@ -127,18 +127,19 @@ load_students(){
 url=${COURSE_GIT_URL:-'github.com'}
 action='pull'
 depth_flag=""
-ellapsed=5
+ellapsed=1
 verbose=0
 color=1
+org="mhz-ninjas"
 repo=${COURSE_GIT_REPO:-'work'}
-branch='master'
+branch='main'
 class_prefix=''
 
-while getopts ":hpc:vk:u:r:b:dit:n" opt; do
+while getopts ":hpc:vk:u:o:r:b:dit:n" opt; do
   case ${opt} in
   	h ) display "${Bold}Usage:\t ${Normal}$0 ${Normal}[-h] | [-p | -c <depth> [-r <repo>]] [-v] [-i | -t <time>] [user [user]...]\n"
 		display "\t $0                       \t ${Red}pull${Normal} all repos\n"
-		display "\t $0 user1 user2 ...       \t pull repos for user1 user2...\n"		
+		display "\t $0 user1 user2 ...       \t pull repos for user1 user2...\n"
 		display "${Bold}Options${Normal}\n"
 		display "\t -p           \t\t pull, this is the default\n"
 		display "\t -c <depth>   \t clone optionaly with depth\n"
@@ -146,10 +147,11 @@ while getopts ":hpc:vk:u:r:b:dit:n" opt; do
 	  # display "\t -i           \t immediate, no wait between actions on repos\n"
 	  	display "\t -k <class>   \t class/course name. user will be class.user\n"
 		display "\t -u <URL>   	 \t git base URL\n"
+		display "\t -o <org>     \t organization name"
 		display "\t -d           \t\t remove local repository\n"
 		display "\t -t n         \t\t wait n seconds between actions on repos\n"
 		display "\t -v 	         \t\t verbose mode\n"
-		display "\t -n 	         \t\t no color\n"		
+		display "\t -n 	         \t\t no color\n"
 		display "\t -h           \t\t help message\n"
 		exit 0
 		;;
@@ -164,11 +166,15 @@ while getopts ":hpc:vk:u:r:b:dit:n" opt; do
     	;;
 	k)  klass_arg=1
 		if [ $OPTARG != "" ]; then
-			class_prefix="${OPTARG}."
+			class_prefix="${OPTARG}"
 		fi
 		;;
 	u)  if [ $OPTARG != "" ]; then
 			url=$OPTARG
+		fi
+		;;
+	o)  if [ $OPTARG != "" ]; then
+			org=$OPTARG
 		fi
 		;;
 	r)  if [ $OPTARG != "" ]; then
@@ -184,11 +190,11 @@ while getopts ":hpc:vk:u:r:b:dit:n" opt; do
 	i) ellapsed=0
 		;;
 	t ) if [ $OPTARG != "" ]; then
-			ellapsed=$OPTARG		
-		fi		
-		;; 
-	n ) color=0		
-		;; 
+			ellapsed=$OPTARG
+		fi
+		;;
+	n ) color=0
+		;;
     \? ) echo "Invalid Option: -$OPTARG" 1>&2
       	exit 1
 		;;
@@ -212,7 +218,7 @@ if [ -z "$klass_arg" ]; then
 		# or read class name from file
 		class=$(<class)
 		class=$(trim $class)
-		class_prefix="${class}."		
+		class_prefix="${class}."
 	elif [ -e students.lst ]; then
 		load_students
 		class_prefix=$class_prefix_from_file
@@ -222,7 +228,7 @@ if [ -z "$klass_arg" ]; then
 	fi
 fi
 
-if [[ ! -z "${students// }" ]]; then	
+if [[ ! -z "${students// }" ]]; then
 	student_array=( ${students} )
 	student_count=${#student_array[@]}
 else
@@ -233,75 +239,76 @@ else
 	student_count=$((student_count+student_count_delta))
 fi
 
-display "${Blue} Retrieving code updates for ${LightCyan}${repo}${Blue} from ${LightCyan}${student_count} ${Blue}students in class ${LightCyan}${class_prefix}${Blue}"
-display "${LightBlue} [${LightYellow}\U2248 ${LightCyan}$(($student_count * $ellapsed))${Blue} seconds${LightBlue}]\n"
+display "${Green} Retrieving code updates for ${LightCyan}${student_count} ${Green}students in class ${LightCyan}${class_prefix}${Blue}\n"
 
 curr=0
 skip=0
 
-for d in ${student_array[@]}; do	
-	d=$(trim $d)	
-	if [ "$d" == "" ];then		
+for d in ${student_array[@]}; do
+	d=$(trim $d)
+	if [ "$d" == "" ];then
 		continue
 	fi
+
 	((curr++))
 	ticker="${Normal}${Yellow} \U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027\U2027${Normal}${Blue}(${LightYellow}$curr${Normal}${Green}/$student_count${Blue}) ${Cyan}${Bold}"
-	if [ ${d:0:1} == "#" ] ; then 
+	if [ ${d:0:1} == "#" ] ; then
 		display "${Bold}${Yellow} \UFE57${Normal}${LightYellow}\U00AB${Yellow}skipped${Normal}${LightYellow}\U00BB ${ticker} ${d:1} ${LightYellow}\U2715\n"
 		continue;
 	fi
 
 	rm -f ${d}.log
 	if [ $action == "delete" ]; then
-		display "${Bold}${LightRed} \U2623 ${Normal}${LightYellow}\U00AB${Yellow}removed${Normal}${LightYellow}\U00BB ${ticker} ${d} ${LightRed}\U2715\n"
+		display "${Bold}${LightRed} \U2623 ${Normal}${LightYellow}\U00AB${Yellow}removing${Normal}${LightYellow}\U00BB ${ticker} ${d} ${LightRed}\U2715\n"
 		rm -Rf ${d}
 		continue;
 	fi
 	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${Normal}${LightRed}✇ ${LightYellow}${UU_HCHEVRONB}${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
-			git clone $depth_flag git@$url:${class_prefix}$d/$repo.git $d > /dev/null 2> ${d}.log
+
+			git clone $depth_flag git@${url}:${org}/${class_prefix}.${d}.git ${d} > /dev/null 2> ${d}.log
 			gitstatus=$?
 		RestoreCursor
-		if [ $gitstatus -eq 0 ]; then		
-			display " ${LightGreen}  ✓ \n"  
+		if [ $gitstatus -eq 0 ]; then
+			display " ${LightGreen}  ✓ \n"
 			rm ${d}.log
-		else			
+		else
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${repo}${LightRed}?\n"
-			echo -e "\ngit clone ${depth_flag} git@${url}:${class_prefix}${d}/${repo}.git ${d}" >> ${d}.log
+			echo -e "\ngit clone $depth_flag git@${url}:${org}/${class_prefix}.${d}.git ${d}" >> ${d}.log
 		fi
 	else
 		cd $d
-		display "${LightGreen}✇ ${LightYellow}\U00AB ${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "				
-		SaveCursor		
-			display "\n"							
+		display "${LightGreen}✇ ${LightYellow}\U00AB ${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "
+		SaveCursor
+			display "\n"
 			git stash > /dev/null 2>&1
 			git $action	> /dev/null 2>${d}.log
-			gitstatus=$?		
+			gitstatus=$?
 		RestoreCursor
-		if [ $gitstatus -eq 0 ]; then		
-			display " ${LightGreen}  ✓ \n"  
+		if [ $gitstatus -eq 0 ]; then
+			display " ${LightGreen}  ✓ \n"
 			rm ${d}.log
-		else			
+		else
 			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${repo}\n"
 		fi
-		
-		SaveCursor		
+
+		SaveCursor
 		if (( $verbose == 1 )); then
 			line=$((curr+3))
 			display "\033[${line};28r"
 			RestoreCursor
 			SaveCursor
 			git log --graph --pretty='%Cred%h%Creset -%C(auto)%d%n %C(bold cyan) %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --stat -5
-			# waitForLoop $ellapsed $curr $((student_count+1))		
+			# waitForLoop $ellapsed $curr $((student_count+1))
 			display "\033[;r"
 		fi
 		if (( $verbose != 1 )); then
-			waitForLoop $ellapsed $curr $student_count		
-		fi		
+			waitForLoop $ellapsed $curr $student_count
+		fi
 		RestoreCursor
 		ClearToEndOfScreen
-		
+
 		cd $curdir
 	fi
 done
