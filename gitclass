@@ -173,13 +173,9 @@ while getopts ":hpc:vk:u:o:r:b:dit:n" opt; do
 			url=$OPTARG
 		fi
 		;;
-	o)  if [ $OPTARG != "" ]; then
-			org=$OPTARG
-		fi
+	o)  org=$OPTARG
 		;;
-	r)  if [ $OPTARG != "" ]; then
-			repo=$OPTARG
-		fi
+	r)  repo=$OPTARG
 		;;
 	b)  if [ $OPTARG != "" ]; then
 			branch=$OPTARG
@@ -267,7 +263,7 @@ for d in ${student_array[@]}; do
 		display "${Normal}${LightRed}✇ ${LightYellow}${UU_HCHEVRONB}${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
 
-			git clone $depth_flag git@${url}:${org}/${class_prefix}.${d}.git ${d} > /dev/null 2> ${d}.log
+			git clone $depth_flag git@${url}:${org}${class_prefix}.${d}${repo}.git ${d} > /dev/null 2> ${d}.log
 			gitstatus=$?
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then
@@ -275,8 +271,14 @@ for d in ${student_array[@]}; do
 			rm ${d}.log
 		else
 			display " ${Bold}${LightRed} 🔥 ${LightCyan}${repo}${LightRed}?\n"
-			echo -e "\ngit clone $depth_flag git@${url}:${org}/${class_prefix}.${d}.git ${d}" >> ${d}.log
+			echo -e "\ngit clone $depth_flag git@${url}:${org}${class_prefix}.${d}${repo}.git ${d}" >> ${d}.log
 		fi
+
+		SaveCursor
+		if (( $verbose != 1 )); then
+			waitForLoop $ellapsed $curr $student_count
+		fi
+		RestoreCursor
 	else
 		cd $d
 		display "${LightGreen}✇ ${LightYellow}\U00AB ${Cyan}pulling${LightYellow}\U00BB ${ticker} $d "
@@ -288,7 +290,7 @@ for d in ${student_array[@]}; do
 		RestoreCursor
 		if [ $gitstatus -eq 0 ]; then
 			display " ${LightGreen}  ✓ \n"
-			rm ${d}.log
+			rm -f ${d}.log
 		else
 			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${repo}\n"
 		fi
