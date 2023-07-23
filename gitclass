@@ -254,12 +254,12 @@ for d in ${student_array[@]}; do
 	fi
 
 	rm -f ${d}.log
-	if [ $action == "delete" ]; then
+	if [ '$action' == "delete" ]; then
 		display "${Bold}${LightRed} \U2623 ${Normal}${LightYellow}\U00AB${Yellow}removing${Normal}${LightYellow}\U00BB ${ticker} ${d} ${LightRed}\U2715\n"
 		rm -Rf ${d}
 		continue;
 	fi
-	if [ $action == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
+	if [ '$action' == 'clone' ] || [ ! -d "$d" ] || [ ! "$(ls -A $d)" ]; then
 		display "${Normal}${LightRed}✇ ${LightYellow}${UU_HCHEVRONB}${Cyan}cloning${LightYellow}\U00BB ${ticker} $d "
 		SaveCursor
 
