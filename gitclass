@@ -131,7 +131,7 @@ ellapsed=1
 verbose=0
 color=1
 org="mhz-ninjas"
-repo=${COURSE_GIT_REPO:-'work'}
+repo=${COURSE_GIT_REPO:-'/work'}
 branch='main'
 class_prefix=''
 
