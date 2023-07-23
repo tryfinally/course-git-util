@@ -148,6 +148,7 @@ while getopts ":hpc:vk:u:o:r:b:dit:n" opt; do
 	  	display "\t -k <class>   \t class/course name. user will be class.user\n"
 		display "\t -u <URL>   	 \t git base URL\n"
 		display "\t -o <org>     \t organization name"
+		display "\t -b <branch>  \t branch name"
 		display "\t -d           \t\t remove local repository\n"
 		display "\t -t n         \t\t wait n seconds between actions on repos\n"
 		display "\t -v 	         \t\t verbose mode\n"
@@ -172,6 +173,8 @@ while getopts ":hpc:vk:u:o:r:b:dit:n" opt; do
 	u)  if [ $OPTARG != "" ]; then
 			url=$OPTARG
 		fi
+		;;
+	b)  branch=$OPTARG
 		;;
 	o)  org=$OPTARG
 		;;
@@ -294,7 +297,9 @@ for d in ${student_array[@]}; do
 		else
 			display " ${Bold}${LightRed} 🔥${Normal}${LightYellow} pulling ${LightCyan}${repo}\n"
 		fi
-
+		if [ "$branch" != "" ];then
+			git checkout $branch
+		fi
 		SaveCursor
 		if (( $verbose == 1 )); then
 			line=$((curr+3))
