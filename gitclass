@@ -125,7 +125,7 @@ load_students(){
 }
 
 url=${COURSE_GIT_URL:-'github.com'}
-action='pull'
+action='pull --all'
 depth_flag=""
 ellapsed=1
 verbose=0
